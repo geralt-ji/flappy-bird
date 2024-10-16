@@ -13,10 +13,7 @@ let bY = 150;
 let gravity = 1;
 let score = 0;
 let pipe = [];
-pipe[0] = {
-    x: canvas.width,
-    y: 0
-};
+let constant; // 声明constant，但不在这里初始化
 
 // 颜色设置
 const colors = {
@@ -46,7 +43,15 @@ startButton.addEventListener('click', startGame);
 
 function startGame() {
     startButton.style.display = 'none';
+    initGame();
     gameLoop();
+}
+
+function initGame() {
+    // 在这里初始化constant
+    constant = sizes.pipe.height + 200;
+    
+    // 不需要特别初始化第一个管道
 }
 
 // 游戏主循环
@@ -55,19 +60,19 @@ function gameLoop() {
     ctx.fillStyle = colors.background;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 绘制管道
+    // 在循环开始前检查是否需要生成第一个管道
+    if (pipe.length === 0) {
+        generatePipe();
+    }
+
     for (let i = 0; i < pipe.length; i++) {
-        const constant = sizes.pipe.height + 80;
         ctx.fillStyle = colors.pipe;
         ctx.fillRect(pipe[i].x, pipe[i].y, sizes.pipe.width, sizes.pipe.height);
         ctx.fillRect(pipe[i].x, pipe[i].y + constant, sizes.pipe.width, sizes.pipe.height);
         pipe[i].x--;
 
         if (pipe[i].x == 125) {
-            pipe.push({
-                x: canvas.width,
-                y: Math.floor(Math.random() * (canvas.height - constant - 100)) - sizes.pipe.height + 50
-            });
+            generatePipe();
         }
 
         // 碰撞检测
@@ -94,3 +99,14 @@ function gameLoop() {
 
     requestAnimationFrame(gameLoop);
 }
+
+// 新增函数用于生成管道
+function generatePipe() {
+    pipe.push({
+        x: canvas.width,
+        y: Math.floor( (canvas.height - constant - 100)) - sizes.pipe.height + 50
+    });
+}
+
+// 确保在适当的时候调用initGame
+// 例如：window.onload = initGame;
