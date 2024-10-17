@@ -41,22 +41,107 @@ let score = 0;
 // 添加暂停状态
 let isPaused = false;
 
-// 初始化游戏
-function initGame() {
-    resizeCanvas();
-    gameRunning = true;
+// 初始化函数
+function init() {
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    
+    resetGame();
+    drawScene();
+    
+    startButton.style.display = 'block';
+    pauseButton.style.display = 'none';
+    scoreDisplay.style.display = 'none';
+}
+
+// 重置游戏状态
+function resetGame() {
+    bird = {
+        x: 50,
+        y: canvas.height / 2,
+        radius: 20,
+        velocity: 0,
+        gravity: 0.5,
+        jump: -10
+    };
     pipes = [];
-    bird.y = canvas.height / 2;
-    bird.velocity = 0;
-    generatePipe();
-    startButton.style.display = 'none';  // 隐藏开始按钮
     score = 0;
-    scoreDisplay.textContent = `Score: ${score}`;
-    scoreDisplay.style.display = 'block';
+    generatePipe(); // 生成初始管道
+}
+
+// 绘制场景
+function drawScene() {
+    // 绘制背景
+    ctx.fillStyle = colors.sky;
+    ctx.fillRect(0, 0, canvas.width, canvas.height * 0.8);
+    
+    ctx.fillStyle = colors.ground;
+    ctx.fillRect(0, canvas.height * 0.8, canvas.width, canvas.height * 0.2);
+    
+    // 绘制小鸟
+    ctx.fillStyle = colors.bird;
+    ctx.beginPath();
+    ctx.arc(bird.x, bird.y, bird.radius, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // 绘制管道
+    ctx.fillStyle = colors.pipe;
+    for (let pipe of pipes) {
+        ctx.fillRect(pipe.x, pipe.topY, 50, pipe.topHeight);
+        ctx.fillRect(pipe.x, pipe.bottomY, 50, pipe.bottomHeight);
+    }
+}
+
+// 开始游戏
+function startGame() {
+    resetGame(); // 重新生成游戏元素
+    gameRunning = true;
+    startButton.style.display = 'none';
     pauseButton.style.display = 'block';
-    isPaused = false;
-    pauseButton.textContent = '| |';
+    scoreDisplay.style.display = 'block';
+    scoreDisplay.textContent = `Score: ${score}`;
     gameLoop();
+}
+
+// 游戏循环
+function gameLoop() {
+    if (!gameRunning) return;
+    
+    updateGameState();
+    
+    // 清空画布并重新绘制
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawScene();
+    
+    // 更新分数显示
+    scoreDisplay.textContent = `Score: ${score}`;
+    
+    requestAnimationFrame(gameLoop);
+}
+
+// 更新游戏状态
+function updateGameState() {
+    // 更新小鸟位置
+    bird.velocity += bird.gravity;
+    bird.y += bird.velocity;
+    
+    // 更新管道位置
+    for (let pipe of pipes) {
+        pipe.x -= 2; // 管道移动速度
+    }
+    
+    // 生成新管道
+    if (pipes[pipes.length - 1].x < canvas.width - 300) {
+        generatePipe();
+    }
+    
+    // 移除屏幕外的管道
+    if (pipes[0].x + 50 < 0) {
+        pipes.shift();
+    }
+    
+    // 碰撞检测和得分逻辑
+    // ... 添加碰撞检测和得分更新的代码 ...
 }
 
 // 生成管道
@@ -190,7 +275,7 @@ function gameLoop() {
 window.addEventListener('resize', resizeCanvas);
 
 // 开始按钮点击事件
-startButton.addEventListener('click', initGame);
+startButton.addEventListener('click', startGame);
 
 // 跳跃函数
 function jump() {
@@ -233,3 +318,35 @@ resizeCanvas();
 
 // 初始隐藏暂停按钮
 pauseButton.style.display = 'none';
+
+// 初始化游戏
+init();
+
+// 预览动画
+function previewAnimation() {
+    if (gameRunning) return;
+    
+    // 缓慢移动管道
+    for (let pipe of pipes) {
+        pipe.x -= 0.5;
+    }
+    
+    // 如果最后一个管道移出屏幕，生成新管道
+    if (pipes[pipes.length - 1].x < canvas.width - 300) {
+        generatePipe();
+    }
+    
+    // 移除屏幕外的管道
+    if (pipes[0].x + 50 < 0) {
+        pipes.shift();
+    }
+    
+    // 重新绘制场景
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawScene();
+    
+    requestAnimationFrame(previewAnimation);
+}
+
+// 开始预览动画
+previewAnimation();
