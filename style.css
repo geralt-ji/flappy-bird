@@ -27,9 +27,11 @@ body {
 #score {
     position: absolute;
     top: 10px;
-    right: 10px;
+    left: 50%;
+    transform: translateX(-50%);
     font-size: 24px;
-    font-weight: bold;
+    color: white;
+    z-index: 10;
 }
 
 #start-button {
@@ -39,4 +41,13 @@ body {
     transform: translate(-50%, -50%);
     font-size: 18px;
     padding: 10px 20px;
+}
+
+#pause-button {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+    font-size: 20px;
+    padding: 5px 10px;
 }

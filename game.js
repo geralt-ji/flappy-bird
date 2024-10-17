@@ -5,6 +5,10 @@ const ctx = canvas.getContext('2d');
 // 获取开始按钮
 const startButton = document.getElementById('start-button');
 
+// 获取暂停按钮和分数显示元素
+const pauseButton = document.getElementById('pause-button');
+const scoreDisplay = document.getElementById('score');
+
 // 设置画布尺寸
 function resizeCanvas() {
     canvas.width = canvas.offsetWidth;
@@ -34,6 +38,9 @@ let bird = {
 // 在游戏状态中添加得分
 let score = 0;
 
+// 添加暂停状态
+let isPaused = false;
+
 // 初始化游戏
 function initGame() {
     resizeCanvas();
@@ -44,6 +51,11 @@ function initGame() {
     generatePipe();
     startButton.style.display = 'none';  // 隐藏开始按钮
     score = 0;
+    scoreDisplay.textContent = `Score: ${score}`;
+    scoreDisplay.style.display = 'block';
+    pauseButton.style.display = 'block';
+    isPaused = false;
+    pauseButton.textContent = '| |';
     gameLoop();
 }
 
@@ -63,7 +75,7 @@ function generatePipe() {
         topHeight: pipeAHeight,
         bottomY: canvas.height - groundHeight - pipeBHeight,
         bottomHeight: pipeBHeight,
-        passed: false
+        passed: false  // 添加这个属性
     });
 }
 
@@ -110,10 +122,15 @@ function updateBird() {
 function gameOver() {
     gameRunning = false;
     startButton.style.display = 'block';  // 显示开始按钮
+    pauseButton.style.display = 'none';
+    // 不要隐藏分数显示
+    // scoreDisplay.style.display = 'none';
 }
 
 // 游戏主循环
 function gameLoop() {
+    if (!gameRunning || isPaused) return;
+
     // 清空画布
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -144,18 +161,17 @@ function gameLoop() {
         }
     }
 
-    // 更新得分
-    for (let pipe of pipes) {
-        if (pipe.x + 50 < bird.x && !pipe.passed) {
+    // 更新分数
+    for (let i = 0; i < pipes.length; i++) {
+        if (pipes[i].x + 50 < bird.x && !pipes[i].passed) {
             score++;
-            pipe.passed = true;
+            pipes[i].passed = true;
+            scoreDisplay.textContent = `Score: ${score}`;
         }
     }
 
-    // 显示得分
-    ctx.fillStyle = 'white';
-    ctx.font = '24px Arial';
-    ctx.fillText(`Score: ${score}`, 10, 30);
+    // 更新得分显示
+    scoreDisplay.textContent = `Score: ${score}`;
 
     // 生成新管道
     if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - 300) {
@@ -167,9 +183,7 @@ function gameLoop() {
     drawBird();
 
     // 如果游戏正在运行，继续循环
-    if (gameRunning) {
-        requestAnimationFrame(gameLoop);
-    }
+    requestAnimationFrame(gameLoop);
 }
 
 // 监听窗口大小变化
@@ -201,5 +215,21 @@ canvas.addEventListener('touchstart', function(e) {
     jump();
 });
 
+// 暂停按钮点击事件
+pauseButton.addEventListener('click', function() {
+    isPaused = !isPaused;
+    if (isPaused) {
+        pauseButton.textContent = '▶';
+    } else {
+        pauseButton.textContent = '| |';
+        if (gameRunning) {
+            gameLoop();
+        }
+    }
+});
+
 // 初始调整画布大小
 resizeCanvas();
+
+// 初始隐藏暂停按钮
+pauseButton.style.display = 'none';
