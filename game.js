@@ -303,10 +303,13 @@ canvas.addEventListener('touchstart', function(e) {
 // 暂停按钮点击事件
 pauseButton.addEventListener('click', function() {
     isPaused = !isPaused;
+    const pauseButtonImg = pauseButton.querySelector('img');
     if (isPaused) {
-        pauseButton.textContent = '▶';
+        pauseButtonImg.src = 'flappy-bird-assets-master/sprites/pts2.png';  // 替换为播放图标的路径
+        pauseButtonImg.alt = 'Play';
     } else {
-        pauseButton.textContent = '| |';
+        pauseButtonImg.src = 'flappy-bird-assets-master/sprites/pts1.png';  // 使用原来的暂停图标
+        pauseButtonImg.alt = 'Pause';
         if (gameRunning) {
             gameLoop();
         }
