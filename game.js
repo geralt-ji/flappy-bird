@@ -15,14 +15,6 @@ function resizeCanvas() {
     canvas.height = canvas.offsetHeight;
 }
 
-// 颜色配置
-const colors = {
-    sky: '#70c5ce',
-    ground: '#ded895',
-    pipe: 'green',
-    bird: 'yellow'
-};
-
 // 游戏状态
 let gameRunning = false;
 let pipes = [];
@@ -32,7 +24,7 @@ let bird = {
     radius: 20,
     velocity: 0,
     gravity: 0.2,
-    jump: -5
+    // jump: -5
 };
 
 // 在游戏状态中添加得分
@@ -40,6 +32,28 @@ let score = 0;
 
 // 添加暂停状态
 let isPaused = false;
+
+// 图片资源
+const images = {
+    background: new Image(),
+    ground: new Image(),
+    bird: new Image(),
+    pipe: new Image()
+};
+
+// 加载图片
+function loadImages() {
+    images.background.src = 'flappy-bird-assets-master/sprites/background-day.png';
+    images.ground.src = 'flappy-bird-assets-master/sprites/base.png';
+    images.bird.src = 'flappy-bird-assets-master/sprites/yellowbird-midflap.png';
+    images.pipe.src = 'flappy-bird-assets-master/sprites/pipe-green.png';
+
+    // 等待所有图片加载完成
+    Promise.all(Object.values(images).map(img => new Promise(resolve => img.onload = resolve)))
+        .then(() => {
+            init();
+        });
+}
 
 // 初始化函数
 function init() {
@@ -52,6 +66,9 @@ function init() {
     startButton.style.display = 'block';
     pauseButton.style.display = 'none';
     scoreDisplay.style.display = 'none';
+
+    // 开始预览动画
+    previewAnimation();
 }
 
 // 重置游戏状态
@@ -72,24 +89,13 @@ function resetGame() {
 // 绘制场景
 function drawScene() {
     // 绘制背景
-    ctx.fillStyle = colors.sky;
-    ctx.fillRect(0, 0, canvas.width, canvas.height * 0.8);
+    ctx.drawImage(images.background, 0, 0, canvas.width, canvas.height * 0.8);
     
-    ctx.fillStyle = colors.ground;
-    ctx.fillRect(0, canvas.height * 0.8, canvas.width, canvas.height * 0.2);
+    // 绘制地面
+    ctx.drawImage(images.ground, 0, canvas.height * 0.8, canvas.width, canvas.height * 0.2);
     
     // 绘制小鸟
-    ctx.fillStyle = colors.bird;
-    ctx.beginPath();
-    ctx.arc(bird.x, bird.y, bird.radius, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // 绘制管道
-    ctx.fillStyle = colors.pipe;
-    for (let pipe of pipes) {
-        ctx.fillRect(pipe.x, pipe.topY, 50, pipe.topHeight);
-        ctx.fillRect(pipe.x, pipe.bottomY, 50, pipe.bottomHeight);
-    }
+    ctx.drawImage(images.bird, bird.x - bird.radius, bird.y - bird.radius, bird.radius * 2, bird.radius * 2);
 }
 
 // 开始游戏
@@ -105,18 +111,71 @@ function startGame() {
 
 // 游戏循环
 function gameLoop() {
-    if (!gameRunning) return;
-    
-    updateGameState();
-    
-    // 清空画布并重新绘制
+    if (!gameRunning || isPaused) return;
+
+    // 清空画布
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawScene();
-    
-    // 更新分数显示
-    scoreDisplay.textContent = `Score: ${score}`;
-    
+
+    // 绘制背景（天空）
+    ctx.drawImage(images.background, 0, 0, canvas.width, canvas.height);
+
+    // 绘制和更新管道
+    drawPipes();
+
+    // 绘制地面
+    ctx.drawImage(images.ground, 0, canvas.height * 0.8, canvas.width, canvas.height * 0.2);
+
+    // 更新分数
+    updateScore();
+
+    // 更新和绘制鸟
+    updateBird();
+    drawBird();
+
+    // 如果游戏正在运行，继续循环
     requestAnimationFrame(gameLoop);
+}
+
+// 更新分数的函数
+function updateScore() {
+    for (let pipe of pipes) {
+        if (pipe.x + 50 < bird.x && !pipe.passed) {
+            score++;
+            pipe.passed = true;
+            scoreDisplay.textContent = `Score: ${score}`;
+        }
+    }
+}
+
+// 绘制管道
+function drawPipes() {
+    for (let pipe of pipes) {
+        // 绘制上方管道（旋转180度）
+        ctx.save();
+        ctx.translate(pipe.x + 25, pipe.topY + pipe.topHeight / 2);
+        ctx.rotate(Math.PI);
+        ctx.drawImage(images.pipe, -25, -pipe.topHeight / 2, 50, pipe.topHeight);
+        ctx.restore();
+
+        // 绘制下方管道
+        ctx.drawImage(images.pipe, pipe.x, pipe.bottomY, 50, pipe.bottomHeight);
+
+        // 移动管道
+        pipe.x -= 2;
+    }
+
+    // 移除屏幕外的管道
+    pipes = pipes.filter(pipe => pipe.x + 50 > 0);
+
+    // 生成新管道
+    if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - 300) {
+        generatePipe();
+    }
+}
+
+// 绘制鸟
+function drawBird() {
+    ctx.drawImage(images.bird, bird.x - bird.radius, bird.y - bird.radius, bird.radius * 2, bird.radius * 2);
 }
 
 // 更新游戏状态
@@ -164,13 +223,6 @@ function generatePipe() {
     });
 }
 
-// 绘制鸟
-function drawBird() {
-    ctx.fillStyle = colors.bird;
-    ctx.beginPath();
-    ctx.arc(bird.x, bird.y, bird.radius, 0, Math.PI * 2);
-    ctx.fill();
-}
 
 // 更新鸟的位置
 function updateBird() {
@@ -212,65 +264,6 @@ function gameOver() {
     // scoreDisplay.style.display = 'none';
 }
 
-// 游戏主循环
-function gameLoop() {
-    if (!gameRunning || isPaused) return;
-
-    // 清空画布
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // 绘制天空
-    ctx.fillStyle = colors.sky;
-    ctx.fillRect(0, 0, canvas.width, canvas.height * 0.8);
-
-    // 绘制地面
-    ctx.fillStyle = colors.ground;
-    ctx.fillRect(0, canvas.height * 0.8, canvas.width, canvas.height * 0.2);
-
-    // 绘制和移动管道
-    ctx.fillStyle = colors.pipe;
-    for (let i = 0; i < pipes.length; i++) {
-        let pipe = pipes[i];
-        // 绘制上方管道
-        ctx.fillRect(pipe.x, pipe.topY, 50, pipe.topHeight);
-        // 绘制下方管道
-        ctx.fillRect(pipe.x, pipe.bottomY, 50, pipe.bottomHeight);
-        
-        // 移动管道
-        pipe.x -= 2;
-
-        // 如果管道移出屏幕，则删除
-        if (pipe.x + 50 < 0) {
-            pipes.splice(i, 1);
-            i--;
-        }
-    }
-
-    // 更新分数
-    for (let i = 0; i < pipes.length; i++) {
-        if (pipes[i].x + 50 < bird.x && !pipes[i].passed) {
-            score++;
-            pipes[i].passed = true;
-            scoreDisplay.textContent = `Score: ${score}`;
-        }
-    }
-
-    // 更新得分显示
-    scoreDisplay.textContent = `Score: ${score}`;
-
-    // 生成新管道
-    if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - 300) {
-        generatePipe();
-    }
-
-    // 更新和绘制鸟
-    updateBird();
-    drawBird();
-
-    // 如果游戏正在运行，继续循环
-    requestAnimationFrame(gameLoop);
-}
-
 // 监听窗口大小变化
 window.addEventListener('resize', resizeCanvas);
 
@@ -305,10 +298,10 @@ pauseButton.addEventListener('click', function() {
     isPaused = !isPaused;
     const pauseButtonImg = pauseButton.querySelector('img');
     if (isPaused) {
-        pauseButtonImg.src = 'flappy-bird-assets-master/sprites/pts2.png';  // 替换为播放图标的路径
+        pauseButtonImg.src = 'flappy-bird-assets-master/sprites/pts1.png';  // 替换为播放图标的路径
         pauseButtonImg.alt = 'Play';
     } else {
-        pauseButtonImg.src = 'flappy-bird-assets-master/sprites/pts1.png';  // 使用原来的暂停图标
+        pauseButtonImg.src = 'flappy-bird-assets-master/sprites/pts2.png';  // 使用原来的暂停图标
         pauseButtonImg.alt = 'Pause';
         if (gameRunning) {
             gameLoop();
@@ -324,7 +317,6 @@ pauseButton.style.display = 'none';
 
 // 初始化游戏
 init();
-
 // 预览动画
 function previewAnimation() {
     if (gameRunning) return;
@@ -353,3 +345,10 @@ function previewAnimation() {
 
 // 开始预览动画
 previewAnimation();
+
+// 修改这里以先加载图片
+loadImages();
+
+// 删除或注释掉不需要的函数和事件监听器
+// 例如：updateGameState, gameLoop, jump 等
+
