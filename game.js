@@ -24,7 +24,7 @@ let bird = {
     radius: 20,
     velocity: 0,
     gravity: 0.2,
-    // jump: -5
+    jump: -5
 };
 
 // 在游戏状态中添加得分
@@ -32,6 +32,9 @@ let score = 0;
 
 // 添加暂停状态
 let isPaused = false;
+
+// 管道和地面移动速度
+let PIPE_SPEED = 2;
 
 // 图片资源
 const images = {
@@ -86,14 +89,35 @@ function resetGame() {
     generatePipe(); // 生成初始管道
 }
 
-// 绘制场景
+// 地面位置坐标, 用于循环播放地面
+let groundX = 0;
+
+// 新增函数：绘制循环播放的地面
+function drawScrollingGround(speed = 0) {
+    // 更新地面位置
+    groundX -= speed;
+    if (groundX <= -canvas.width) {
+        groundX = 0;
+    }
+
+    // 计算地面的高度（画布高度的20%）
+    const groundHeight = canvas.height * 0.2;
+    // 计算地面的Y坐标（画布高度的80%处）
+    const groundY = canvas.height * 0.8;
+
+    // 绘制两个相邻的地面图像，拉伸以适应画布大小
+    ctx.drawImage(images.ground, groundX, groundY, canvas.width, groundHeight);
+    ctx.drawImage(images.ground, groundX + canvas.width, groundY, canvas.width, groundHeight);
+}
+
+// 绘制场景(游戏第一次打开时会调用)
 function drawScene() {
     // 绘制背景
     ctx.drawImage(images.background, 0, 0, canvas.width, canvas.height * 0.8);
     
-    // 绘制地面
-    ctx.drawImage(images.ground, 0, canvas.height * 0.8, canvas.width, canvas.height * 0.2);
-    
+    // 绘制循环播放的地面，速度为0（静止）
+    drawScrollingGround(0);
+
     // 绘制小鸟
     ctx.drawImage(images.bird, bird.x - bird.radius, bird.y - bird.radius, bird.radius * 2, bird.radius * 2);
 }
@@ -109,7 +133,7 @@ function startGame() {
     gameLoop();
 }
 
-// 游戏循环
+// 游戏循环(游戏运行时会调用)
 function gameLoop() {
     if (!gameRunning || isPaused) return;
 
@@ -122,8 +146,8 @@ function gameLoop() {
     // 绘制和更新管道
     drawPipes();
 
-    // 绘制地面
-    ctx.drawImage(images.ground, 0, canvas.height * 0.8, canvas.width, canvas.height * 0.2);
+    // 绘制循环播放的地面，使用 PIPE_SPEED
+    drawScrollingGround(PIPE_SPEED);
 
     // 更新分数
     updateScore();
@@ -161,7 +185,7 @@ function drawPipes() {
         ctx.drawImage(images.pipe, pipe.x, pipe.bottomY, 50, pipe.bottomHeight);
 
         // 移动管道
-        pipe.x -= 2;
+        pipe.x -= PIPE_SPEED;
     }
 
     // 移除屏幕外的管道
@@ -351,4 +375,3 @@ loadImages();
 
 // 删除或注释掉不需要的函数和事件监听器
 // 例如：updateGameState, gameLoop, jump 等
-
