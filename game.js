@@ -18,14 +18,7 @@ function resizeCanvas() {
 // 游戏状态
 let gameRunning = false;
 let pipes = [];
-let bird = {
-    x: 50,
-    y: canvas.height / 2,
-    radius: 20,
-    velocity: 0,
-    gravity: 0.2,
-    jump: -5
-};
+let bird;
 
 // 在游戏状态中添加得分
 let score = 0;
@@ -51,6 +44,13 @@ function loadImages() {
     images.bird.src = 'flappy-bird-assets-master/sprites/yellowbird-midflap.png';
     images.pipe.src = 'flappy-bird-assets-master/sprites/pipe-green.png';
 
+    // 加载数字图片
+    for (let i = 0; i <= 9; i++) {
+        const img = new Image();
+        img.src = `flappy-bird-assets-master/sprites/${i}.png`;
+        images[`number${i}`] = img;
+    }
+
     // 等待所有图片加载完成
     Promise.all(Object.values(images).map(img => new Promise(resolve => img.onload = resolve)))
         .then(() => {
@@ -64,7 +64,7 @@ function init() {
     canvas.height = canvas.offsetHeight;
     
     resetGame();
-    drawScene();
+    // drawScene(); 暂时用不上
     
     startButton.style.display = 'block';
     pauseButton.style.display = 'none';
@@ -81,8 +81,8 @@ function resetGame() {
         y: canvas.height / 2,
         radius: 20,
         velocity: 0,
-        gravity: 0.5,
-        jump: -10
+        gravity: 0.3, // 重力
+        jump: -7 // 跳跃
     };
     pipes = [];
     score = 0;
@@ -129,7 +129,6 @@ function startGame() {
     startButton.style.display = 'none';
     pauseButton.style.display = 'block';
     scoreDisplay.style.display = 'block';
-    scoreDisplay.textContent = `Score: ${score}`;
     gameLoop();
 }
 
@@ -160,30 +159,42 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
+//得分图标
+function updateScoreDisplay() {
+    scoreDisplay.innerHTML = ''; // 清空现有内容
+    const scoreString = score.toString();
+    for (let digit of scoreString) {
+        const img = document.createElement('img');
+        img.src = `flappy-bird-assets-master/sprites/${digit}.png`;
+        img.alt = digit;
+        scoreDisplay.appendChild(img);
+    }
+}
+
 // 更新分数的函数
 function updateScore() {
     for (let pipe of pipes) {
         if (pipe.x + 50 < bird.x && !pipe.passed) {
             score++;
             pipe.passed = true;
-            scoreDisplay.textContent = `Score: ${score}`;
+            updateScoreDisplay(); // 更新分数显示
         }
     }
 }
-
-// 绘制管道
+// 在画布上真实绘制管道
 function drawPipes() {
     for (let pipe of pipes) {
-        // 绘制上方管道（旋转180度）
+        // 绘制上方管道（旋转180度并水平翻转）
         ctx.save();
         ctx.translate(pipe.x + 25, pipe.topY + pipe.topHeight / 2);
         ctx.rotate(Math.PI);
-        ctx.drawImage(images.pipe, -25, -pipe.topHeight / 2, 50, pipe.topHeight);
+        ctx.scale(-1, 1); // 水平翻转
+        ctx.drawImage(images.pipe, -25, -pipe.topHeight / 2);  //若后面加了宽高，则需要删除
         ctx.restore();
 
-        // 绘制下方管道
-        ctx.drawImage(images.pipe, pipe.x, pipe.bottomY, 50, pipe.bottomHeight);
-
+        // 绘制方管道
+        ctx.drawImage(images.pipe, pipe.x, pipe.bottomY);
+        
         // 移动管道
         pipe.x -= PIPE_SPEED;
     }
@@ -227,14 +238,15 @@ function updateGameState() {
     // ... 添加碰撞检测和得分更新的代码 ...
 }
 
-// 生成管道
+// 生成管道参数和位置
 function generatePipe() {
     const groundHeight = canvas.height * 0.2;
-    const skyHeight = canvas.height * 0.8;
-    const gapHeight = canvas.height * 0.3;
     const totalPipeHeight = canvas.height * 0.5;
 
-    const pipeAHeight = Math.random() * totalPipeHeight;
+    const minPipeHeight = canvas.height * 0.05; // 最小高度为画布的 10%
+    const maxPipeHeight = canvas.height * 0.45; // 最大高度为画布的 40%
+
+    const pipeAHeight = minPipeHeight + Math.random() * (maxPipeHeight - minPipeHeight);
     const pipeBHeight = totalPipeHeight - pipeAHeight;
 
     pipes.push({
@@ -279,13 +291,11 @@ function updateBird() {
     }
 }
 
-// 游戏结束
+// 游戏束
 function gameOver() {
     gameRunning = false;
     startButton.style.display = 'block';  // 显示开始按钮
     pauseButton.style.display = 'none';
-    // 不要隐藏分数显示
-    // scoreDisplay.style.display = 'none';
 }
 
 // 监听窗口大小变化
@@ -373,5 +383,4 @@ previewAnimation();
 // 修改这里以先加载图片
 loadImages();
 
-// 删除或注释掉不需要的函数和事件监听器
-// 例如：updateGameState, gameLoop, jump 等
+
