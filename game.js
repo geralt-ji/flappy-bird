@@ -2,8 +2,10 @@
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 
-// 获取开始按钮
+// 获取开始按钮和标题
 const startButton = document.getElementById('start-button');
+const startTitle = document.getElementById('start-title');
+
 
 // 获取暂停按钮和分数显示元素
 const pauseButton = document.getElementById('pause-button');
@@ -64,7 +66,6 @@ function init() {
     canvas.height = canvas.offsetHeight;
     
     resetGame();
-    // drawScene(); 暂时用不上
     
     startButton.style.display = 'block';
     pauseButton.style.display = 'none';
@@ -113,7 +114,7 @@ function drawScrollingGround(speed = 0) {
 // 绘制场景(游戏第一次打开时会调用)
 function drawScene() {
     // 绘制背景
-    ctx.drawImage(images.background, 0, 0, canvas.width, canvas.height * 0.8);
+    ctx.drawImage(images.background, 0, 0, canvas.width, canvas.height);
     
     // 绘制循环播放的地面，速度为0（静止）
     drawScrollingGround(0);
@@ -126,9 +127,11 @@ function drawScene() {
 function startGame() {
     resetGame(); // 重新生成游戏元素
     gameRunning = true;
+    startTitle.style.display = 'none';
     startButton.style.display = 'none';
     pauseButton.style.display = 'block';
     scoreDisplay.style.display = 'block';
+    updateScoreDisplay(); // 额外触发一次更新分数显示
     gameLoop();
 }
 
@@ -382,5 +385,3 @@ previewAnimation();
 
 // 修改这里以先加载图片
 loadImages();
-
-
