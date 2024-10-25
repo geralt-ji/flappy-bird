@@ -8,14 +8,34 @@
 </head>
 <body>
     <div id="game-container">
+        <div id="transition-overlay"></div>
         <canvas id="game-canvas" width="430" height="600"></canvas>
-        <img id="start-title" src="flappy-bird-assets-master/sprites/start_title.png" alt="Game Title" />
-        <div id="button-container">
-            <a href="guide.html" id="start-button">
-                <img src="flappy-bird-assets-master/sprites/start.png" alt="Start Game" />
-            </a>
+        <!-- 主页面 -->
+        <div id="index-screen">
+            <img id="start-title" src="flappy-bird-assets-master/sprites/start_title.png" alt="Game Title" />
+            <div id="button-container">
+                <button id="start-button">
+                    <img src="flappy-bird-assets-master\sprites\start.png" alt="Start Game" />
+                </button>
+            </div>
+        </div>
+
+        <!-- 游戏页面 -->
+        <div id="game-screen" style="display: none;">
+            <button id="pause-button">
+                <img src="flappy-bird-assets-master\sprites\pts2.png" alt="Pause" />
+            </button>
+            <div id="score">
+                <img src="flappy-bird-assets-master/sprites/0.png" alt="Score: 0" />
+            </div>
+            <img id="guide-title" src="flappy-bird-assets-master/sprites/guide-title.png" alt="Game Title" />
+            <div id="game-overlay"></div>
+            <button id="restart-button">
+                <img src="flappy-bird-assets-master\sprites\start.png" alt="restart" />
+            </button>
         </div>
     </div>
-    <script src="index.js"></script>
+    <script src="game.js"></script>
+    <!-- <script src="index.js"></script> -->
 </body>
 </html>

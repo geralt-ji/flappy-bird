@@ -1,13 +1,44 @@
+//场景过渡
+const TRANSITION_DURATION = 500; // 总过渡时间，单位毫秒
+ 
+// 简化的过渡函数
+function transition(callback) {
+    const transitionOverlay = document.getElementById('transition-overlay');
+    
+    if (!transitionOverlay) {
+        console.error('Transition overlay element is missing');
+        return;
+    }
+
+    // 开始过渡
+    transitionOverlay.classList.add('active');
+
+    // 在过渡中间执行回调
+    setTimeout(() => {
+        if (callback && typeof callback === 'function') {
+            callback();
+        }
+
+        // 开始淡出过渡
+        transitionOverlay.classList.remove('active');
+    }, TRANSITION_DURATION / 2);
+}
+
 // 获取画布和上下文
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 
-// 获取开始div(非按钮, 占满了屏幕), 开始标题, 暂停按钮, 分数显示, 重新开始按钮
+// 获取页面1的start按钮, 页面2的开始div(非按钮, 占满了屏幕), start-title, guide-title, 暂停按钮, 分数显示, 游戏页面的重新开始按钮, 主页面和游戏页面的切换
+const startButton = document.getElementById('start-button');
 const gameOverlay = document.getElementById('game-overlay');
 const startTitle = document.getElementById('start-title');
+const guideTitle = document.getElementById('guide-title');
 const pauseButton = document.getElementById('pause-button');
 const scoreDisplay = document.getElementById('score');
 const restartButton = document.getElementById('restart-button');
+const indexScreen = document.getElementById('index-screen');
+const guideScreen = document.getElementById('game-screen');
+
 // 设置画布尺寸
 function resizeCanvas() {
     canvas.width = canvas.offsetWidth;
@@ -67,6 +98,7 @@ function init() {
     gameOverlay.style.display = 'block'; 
     pauseButton.style.display = 'none';
     scoreDisplay.style.display = 'none';
+    guideTitle.style.display = 'block';
 
     // 开始预览动画
     previewAnimation();
@@ -125,6 +157,7 @@ function startGame() {
     resetGame(); // 重新生成游戏元素
     gameRunning = true;
     startTitle.style.display = 'none';
+    guideTitle.style.display = 'none';
     gameOverlay.style.display = 'none';
     restartButton.style.display = 'none';
     pauseButton.style.display = 'block';
@@ -296,16 +329,36 @@ function updateBird() {
 // 游戏结束
 function gameOver() {
     gameRunning = false;
-    // gameOverlay.style.display = 'block';  // 
     pauseButton.style.display = 'none';
     restartButton.style.display = 'block';
 }
 
-// 使用 window.location.href 跳转到 index 页面
-function goToIndex() {
-    window.location.href = 'index.html'; 
+// 显示guide页面
+function showGuide() {
+    transition(() => {
+        indexScreen.style.display = 'none';
+        guideScreen.style.display = 'block';
+    });
 }
 
+// 使用 window.location.href 跳转到 index 页面
+function goToIndex() {
+    transition(() => {
+        // 隐藏 guide 页面, 显示 index 页面
+        guideScreen.style.display = 'none';
+        indexScreen.style.display = 'block';
+
+        // 隐藏重新开始按钮, 显示开始按钮
+        restartButton.style.display = 'none';
+        startButton.style.display = 'block';
+        
+        // 显示开始标题（如果有的话）
+        startTitle.style.display = 'block';
+        
+        // 重新初始化游戏
+        init();
+    });
+}
 
 // 监听窗口大小变化
 window.addEventListener('resize', resizeCanvas);
@@ -315,6 +368,9 @@ gameOverlay.addEventListener('click', startGame);
 
 // 重新开始按钮点击事件
 restartButton.addEventListener('click', goToIndex);
+
+// 开始按钮点击事件
+startButton.addEventListener('click', showGuide);
 
 // 跳跃函数
 function jump() {
