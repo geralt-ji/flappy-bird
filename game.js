@@ -2,15 +2,12 @@
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 
-// 获取开始按钮和标题
+// 获取开始div(非按钮, 占满了屏幕), 开始标题, 暂停按钮, 分数显示, 重新开始按钮
 const gameOverlay = document.getElementById('game-overlay');
 const startTitle = document.getElementById('start-title');
-
-
-// 获取暂停按钮和分数显示元素
 const pauseButton = document.getElementById('pause-button');
 const scoreDisplay = document.getElementById('score');
-
+const restartButton = document.getElementById('restart-button');
 // 设置画布尺寸
 function resizeCanvas() {
     canvas.width = canvas.offsetWidth;
@@ -129,6 +126,7 @@ function startGame() {
     gameRunning = true;
     startTitle.style.display = 'none';
     gameOverlay.style.display = 'none';
+    restartButton.style.display = 'none';
     pauseButton.style.display = 'block';
     scoreDisplay.style.display = 'block';
     updateScoreDisplay(); // 额外触发一次更新分数显示
@@ -295,18 +293,28 @@ function updateBird() {
     }
 }
 
-// 游戏束
+// 游戏结束
 function gameOver() {
     gameRunning = false;
-    gameOverlay.style.display = 'block';  // 显示开始按钮
+    // gameOverlay.style.display = 'block';  // 
     pauseButton.style.display = 'none';
+    restartButton.style.display = 'block';
 }
+
+// 使用 window.location.href 跳转到 index 页面
+function goToIndex() {
+    window.location.href = 'index.html'; 
+}
+
 
 // 监听窗口大小变化
 window.addEventListener('resize', resizeCanvas);
 
-// 开始按钮点击事件
+// 开始div点击事件
 gameOverlay.addEventListener('click', startGame);
+
+// 重新开始按钮点击事件
+restartButton.addEventListener('click', goToIndex);
 
 // 跳跃函数
 function jump() {
@@ -385,4 +393,3 @@ previewAnimation();
 
 // 修改这里以先加载图片
 loadImages();
-
