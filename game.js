@@ -3,7 +3,7 @@ const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 
 // 获取开始按钮和标题
-const startButton = document.getElementById('start-button');
+const gameOverlay = document.getElementById('game-overlay');
 const startTitle = document.getElementById('start-title');
 
 
@@ -67,7 +67,7 @@ function init() {
     
     resetGame();
     
-    startButton.style.display = 'block';
+    gameOverlay.style.display = 'block'; 
     pauseButton.style.display = 'none';
     scoreDisplay.style.display = 'none';
 
@@ -128,10 +128,11 @@ function startGame() {
     resetGame(); // 重新生成游戏元素
     gameRunning = true;
     startTitle.style.display = 'none';
-    startButton.style.display = 'none';
+    gameOverlay.style.display = 'none';
     pauseButton.style.display = 'block';
     scoreDisplay.style.display = 'block';
     updateScoreDisplay(); // 额外触发一次更新分数显示
+    jump(); // 在这里触发一次跳跃
     gameLoop();
 }
 
@@ -192,7 +193,7 @@ function drawPipes() {
         ctx.translate(pipe.x + 25, pipe.topY + pipe.topHeight / 2);
         ctx.rotate(Math.PI);
         ctx.scale(-1, 1); // 水平翻转
-        ctx.drawImage(images.pipe, -25, -pipe.topHeight / 2);  //若后面加了宽高，则需要删除
+        ctx.drawImage(images.pipe, -25, -pipe.topHeight / 2);  //若后面加了宽高则需要删除
         ctx.restore();
 
         // 绘制方管道
@@ -297,7 +298,7 @@ function updateBird() {
 // 游戏束
 function gameOver() {
     gameRunning = false;
-    startButton.style.display = 'block';  // 显示开始按钮
+    gameOverlay.style.display = 'block';  // 显示开始按钮
     pauseButton.style.display = 'none';
 }
 
@@ -305,7 +306,7 @@ function gameOver() {
 window.addEventListener('resize', resizeCanvas);
 
 // 开始按钮点击事件
-startButton.addEventListener('click', startGame);
+gameOverlay.addEventListener('click', startGame);
 
 // 跳跃函数
 function jump() {
@@ -379,9 +380,9 @@ function previewAnimation() {
     
     requestAnimationFrame(previewAnimation);
 }
-
 // 开始预览动画
 previewAnimation();
 
 // 修改这里以先加载图片
 loadImages();
+
